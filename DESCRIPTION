@@ -3,8 +3,12 @@ Title: package for interacting with bovid census API
 Version: 0.1
 Authors@R: "Andrew Barr <wabarr@gmail.com> [aut, cre]"
 Description: Interacts with the bovid census API
-Depends: 
+Depends:
     R (>= 3.1.0)
+Imports:
+    dplyr,
+    httr
 License: MIT
 LazyData: true
-Suggests: testthat
+Suggests:
+    testthat
