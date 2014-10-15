@@ -13,10 +13,7 @@
 
 
 get_data <- function(resource = "occurrence", version="v1", base_url="wabarr.com/census", ...) {
-  require(httr)
-  require(jsonlite)
-  require(plyr)
-  
+
   #format the filters as GET parameters
   filter <- paste(
     paste(
@@ -42,8 +39,9 @@ get_data <- function(resource = "occurrence", version="v1", base_url="wabarr.com
     attempt <-  httr::GET(url = sprintf("%s&username=%s&api_key=%s", formattedURL, username, api_key))
   }
   
+  if (attempt$status_code == 500) stop (sprintf("%s returned a server error (500).  You requested %s", base_url, formattedURL))
   if (attempt$status_code == 401) stop (sprintf("User %s with api_key=%s is not authorized to get this data.", username, api_key))
-  if (attempt$status_code != 200) stop ("There was an error.  Maybe you mispelled something or tried to filter on a field that doesn't exist?")
+  if (attempt$status_code != 200) stop (sprintf("There was an error (code %s).  Maybe you mispelled something or tried to filter on a field that doesn't exist?", attempt$status_code))
   
   theDATA <- httr::content(attempt, as="parsed")
   
@@ -51,7 +49,7 @@ get_data <- function(resource = "occurrence", version="v1", base_url="wabarr.com
     flat <- as.data.frame(rbind(unlist(object)))
     return(flat)
   })
-  result <- plyr::rbind.fill(flattened)
+  suppressWarnings(result <- dplyr::rbind_all(flattened))
   result <- lapply(result, FUN=function(col){
     if (suppressWarnings(all(!is.na(as.numeric(as.character(col)))))) {
       as.numeric(as.character(col))
